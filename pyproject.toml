@@ -1,0 +1,7 @@
+[project]
+name = "neurokit"
+version = "0.1.0"
+
+dependencies = [
+    "uuid7~=0.1.0",
+]
