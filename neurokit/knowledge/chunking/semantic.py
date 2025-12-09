@@ -1,6 +1,7 @@
 import re
 from typing import Callable
 
+from neurokit.core.utils.math import cosine_distance
 from neurokit.knowledge.chunking.base import Chunker
 from neurokit.knowledge.chunking.entity import Chunk
 from neurokit.knowledge.document.entity import Document
@@ -99,7 +100,7 @@ class SemanticChunker(Chunker):
         # Calculate distances between adjacent groups
         distances = []
         for i in range(len(embeddings) - 1):
-            dist = self._cosine_distance(embeddings[i], embeddings[i + 1])
+            dist = cosine_distance(embeddings[i], embeddings[i + 1])
             distances.append(dist)
         
         if not distances:
@@ -126,18 +127,6 @@ class SemanticChunker(Chunker):
             group = " ".join(sentences[i:i + self.buffer_size + 1])
             groups.append(group)
         return groups
-
-    def _cosine_distance(self, vec1: list[float], vec2: list[float]) -> float:
-        """Calculate cosine distance between two vectors."""
-        dot_product = sum(a * b for a, b in zip(vec1, vec2))
-        norm1 = sum(a * a for a in vec1) ** 0.5
-        norm2 = sum(b * b for b in vec2) ** 0.5
-        
-        if norm1 == 0 or norm2 == 0:
-            return 1.0  # Maximum distance
-        
-        similarity = dot_product / (norm1 * norm2)
-        return 1.0 - similarity
 
     def _percentile(self, values: list[float], percentile: int) -> float:
         """Calculate percentile of a list of values."""
