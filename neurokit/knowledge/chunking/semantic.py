@@ -107,7 +107,6 @@ class SemanticChunker(Chunker):
         
         # Find threshold based on percentile
         threshold = self._percentile(distances, self.breakpoint_percentile_threshold)
-        
         # Find breakpoints where distance exceeds threshold
         breakpoints = []
         for i, dist in enumerate(distances):
