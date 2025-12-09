@@ -20,7 +20,6 @@ class Document:
     :param content: the main content of the document.
     :param content_id: an optional identifier for the content.
     :param metadata: metadata associated with the document (optional).
-    :param embeddings: optional list of float embeddings associated with the document.
     """
 
     content: str
@@ -29,8 +28,6 @@ class Document:
     id: Optional[int] = None
     metadata: dict[str, Any] = field(default_factory=dict)
     
-    embeddings: Optional[list[float]] = None
-
     def __post_init__(self):
         """Generate a unique identifier if not provided."""
 
