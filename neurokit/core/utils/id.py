@@ -48,4 +48,18 @@ class IDHelper:
         namespace = uuid.NAMESPACE_DNS
         name = f"{document_id}-{chunk_index}"
         return str(uuid.uuid5(namespace, name))
+
+    @staticmethod
+    def generate_embedding_id(chunk_id: str, model: str) -> str:
+        """
+        Generate a unique embedding ID based on chunk ID and model.
+
+        :param chunk_id: the ID of the chunk this embedding represents.
+        :param model: the embedding model name.
+        :return: generated embedding id
+        :rtype: str
+        """
+        namespace = uuid.NAMESPACE_DNS
+        name = f"{chunk_id}-{model}"
+        return str(uuid.uuid5(namespace, name))
         
