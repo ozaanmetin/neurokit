@@ -28,10 +28,4 @@ class Chunker(ABC):
         """
         self.chunk_size = max(1, self.chunk_size)
         self.overlap = max(0, min(self.overlap, self.chunk_size - 1))
-
-    def clean_text(self,text: str) -> str:
-        """Clean the text by collapsing consecutive whitespace characters"""
-        return re.sub(r'(\s)\1+', r'\1', text)
-
-
     
