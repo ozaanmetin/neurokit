@@ -28,5 +28,4 @@ dev = [
 all = [
     "chromadb>=0.4.0",
     "qdrant-client>=1.7.0",
-    "pymongo>=4.6.0",
 ]
