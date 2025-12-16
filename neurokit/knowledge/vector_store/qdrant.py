@@ -17,10 +17,17 @@ from neurokit.knowledge.vector_store.exceptions import BackendNotInstalled, Coll
 from neurokit.knowledge.vector_store.filter import And, Eq, Filter, In, Not, Or, Range
 
 
+try:
+    from qdrant_client import QdrantClient  # type: ignore
+    from qdrant_client import models  # type: ignore
+except Exception as exc:  # pragma: no cover
+    raise BackendNotInstalled("qdrant", "qdrant") from exc
+
+
 _RESERVED_PAYLOAD_KEY = "_nk_payload"
 
 
-def _compile_filter(expr: Filter, *, models: Any) -> Any:
+def _compile_filter(expr: Filter) -> Any:
     """Compile Filter expression to qdrant_client.models.Filter."""
 
     if isinstance(expr, Eq):
@@ -59,8 +66,8 @@ def _compile_filter(expr: Filter, *, models: Any) -> Any:
         )
 
     if isinstance(expr, And):
-        left = _compile_filter(expr.left, models=models)
-        right = _compile_filter(expr.right, models=models)
+        left = _compile_filter(expr.left)
+        right = _compile_filter(expr.right)
         return models.Filter(
             must=(left.must or []) + (right.must or []),
             should=(left.should or []) + (right.should or []),
@@ -68,12 +75,12 @@ def _compile_filter(expr: Filter, *, models: Any) -> Any:
         )
 
     if isinstance(expr, Or):
-        left = _compile_filter(expr.left, models=models)
-        right = _compile_filter(expr.right, models=models)
+        left = _compile_filter(expr.left)
+        right = _compile_filter(expr.right)
         return models.Filter(should=[left, right], must=[])
 
     if isinstance(expr, Not):
-        inner = _compile_filter(expr.inner, models=models)
+        inner = _compile_filter(expr.inner)
         return models.Filter(must_not=[inner])
 
     raise ValueError(f"Unsupported filter expression for Qdrant: {type(expr).__name__}")
@@ -91,24 +98,19 @@ class QdrantVectorStore(VectorStore):
         api_key: str | None = None,
         path: str | None = None,
         client: Any | None = None,
+        prefer_grpc: bool = False,
     ) -> None:
-        try:
-            from qdrant_client import QdrantClient  # type: ignore
-            from qdrant_client import models  # type: ignore
-        except Exception as exc:  # pragma: no cover
-            raise BackendNotInstalled("qdrant", "qdrant") from exc
+        
 
-        self._models = models
         if client is not None:
             self._client = client
         else:
-            self._client = QdrantClient(url=url, host=host, port=port, api_key=api_key, path=path)
+            self._client = QdrantClient(url=url, host=host, port=port, api_key=api_key, path=path, prefer_grpc=prefer_grpc)
 
     def ensure_collection(self, name: str, *, config: CollectionConfig) -> None:
         if config.distance != DistanceMetric.COSINE:
             raise ValueError("QdrantVectorStore currently supports only cosine distance.")
 
-        models = self._models
         try:
             info = self._client.get_collection(name)
             existing = info.config.params.vectors
@@ -127,7 +129,7 @@ class QdrantVectorStore(VectorStore):
         except Exception:
             pass
 
-        self._client.recreate_collection(
+        self._client.create_collection(
             collection_name=name,
             vectors_config=models.VectorParams(size=config.dimension, distance=models.Distance.COSINE),
         )
@@ -138,7 +140,6 @@ class QdrantVectorStore(VectorStore):
 
         dim = len(records[0].vector)
         self.ensure_collection(collection, config=CollectionConfig(dimension=dim, distance=DistanceMetric.COSINE))
-        models = self._models
 
         points = []
         for record in records:
@@ -158,8 +159,7 @@ class QdrantVectorStore(VectorStore):
         self._client.upsert(collection_name=collection, points=points)
 
     def delete(self, ids: Sequence[str], *, collection: str = DEFAULT_COLLECTION) -> int:
-        models = self._models
-        res = self._client.delete(
+        _ = self._client.delete(
             collection_name=collection,
             points_selector=models.PointIdsList(points=list(ids)),
         )
@@ -174,7 +174,6 @@ class QdrantVectorStore(VectorStore):
         include_vectors: bool = False,
         include_payloads: bool = True,
     ) -> list[VectorRecord]:
-        models = self._models
         try:
             points = self._client.retrieve(
                 collection_name=collection,
@@ -212,7 +211,7 @@ class QdrantVectorStore(VectorStore):
         q = list(vector)
         self.ensure_collection(collection, config=CollectionConfig(dimension=len(q), distance=DistanceMetric.COSINE))
 
-        q_filter = _compile_filter(filter, models=self._models) if filter is not None else None
+        q_filter = _compile_filter(filter) if filter is not None else None
 
         result = self._client.query_points(
             collection_name=collection,
@@ -241,7 +240,7 @@ class QdrantVectorStore(VectorStore):
         return out
 
     def count(self, *, collection: str = DEFAULT_COLLECTION, filter: Filter | None = None) -> int:
-        q_filter = _compile_filter(filter, models=self._models) if filter is not None else None
+        q_filter = _compile_filter(filter) if filter is not None else None
         res = self._client.count(collection_name=collection, count_filter=q_filter, exact=True)
         return int(res.count)
 

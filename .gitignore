@@ -97,3 +97,12 @@ venv
 CLAUDE.md
 
 keys/*
+
+### Vector Store Data ###
+.data/
+
+### Qdrant DB ###
+qdrant_data/
+
+### Chroma DB ###
+chroma_data/

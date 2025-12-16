@@ -17,6 +17,11 @@ from neurokit.knowledge.vector_store.entity import CollectionConfig, DistanceMet
 from neurokit.knowledge.vector_store.exceptions import BackendNotInstalled, DimensionMismatch
 from neurokit.knowledge.vector_store.filter import And, Eq, Filter, In, Or, Range
 
+try:
+    import chromadb  # type: ignore
+except Exception as exc:  # pragma: no cover
+    raise BackendNotInstalled("chroma", "chroma") from exc
+
 
 _RESERVED_PAYLOAD_KEY = "_nk_payload"
 
@@ -77,12 +82,8 @@ class ChromaVectorStore(VectorStore):
         persist_directory: str | None = None,
         client: Any | None = None,
     ) -> None:
-        try:
-            import chromadb  # type: ignore
-        except Exception as exc:  # pragma: no cover
-            raise BackendNotInstalled("chroma", "chroma") from exc
+        
 
-        self._chromadb = chromadb
         if client is not None:
             self._client = client
         else:
@@ -109,11 +110,15 @@ class ChromaVectorStore(VectorStore):
                     backend=self.backend_name,
                 )
 
-        # Chroma has no strict dimension schema; we still create/ensure the collection.
-        self._client.get_or_create_collection(
-            name=name,
-            metadata={"hnsw:space": "cosine"},
-        )
+        # Chroma has no strict dimension schema; ensure the collection exists.
+        # Using get_or_create_collection to avoid recreating existing collections.
+        try:
+            self._client.get_collection(name=name)
+        except Exception:
+            self._client.create_collection(
+                name=name,
+                metadata={"hnsw:space": "cosine"},
+            )
 
     def _get_collection(self, name: str, *, dimension: int | None = None):
         if dimension is not None:
@@ -181,8 +186,8 @@ class ChromaVectorStore(VectorStore):
 
         out: list[VectorRecord] = []
         resp_ids = resp.get("ids", [])
-        resp_embeddings = resp.get("embeddings", []) or []
-        resp_metadatas = resp.get("metadatas", []) or []
+        resp_embeddings = resp.get("embeddings") if resp.get("embeddings") is not None else []
+        resp_metadatas = resp.get("metadatas") if resp.get("metadatas") is not None else []
 
         for idx, record_id in enumerate(resp_ids):
             metadata = resp_metadatas[idx] or {}
