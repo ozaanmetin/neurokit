@@ -7,9 +7,21 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# Embedding providers
+openai = ["openai>=1.0.0"]
+cohere = ["cohere>=5.0.0"]
+huggingface = ["sentence-transformers>=2.2.0"]
+
 # Vector stores
 chroma = ["chromadb>=0.4.0"]
 qdrant = ["qdrant-client>=1.7.0"]
+
+# All embeddings
+embeddings = [
+    "openai>=1.0.0",
+    "cohere>=5.0.0",
+    "sentence-transformers>=2.2.0",
+]
 
 # All vector stores
 vector-stores = [
@@ -26,6 +38,9 @@ dev = [
 
 # All optional dependencies
 all = [
+    "openai>=1.0.0",
+    "cohere>=5.0.0",
+    "sentence-transformers>=2.2.0",
     "chromadb>=0.4.0",
     "qdrant-client>=1.7.0",
 ]

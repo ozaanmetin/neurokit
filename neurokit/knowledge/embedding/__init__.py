@@ -1,7 +1,11 @@
-from neurokit.knowledge.document.entity import Document
-from neurokit.knowledge.embedding import (
-    Embedding,
-    EmbeddingBatch,
+"""
+neurokit.knowledge.embedding
+
+Embedding generation and management for vector representations.
+"""
+
+from neurokit.knowledge.embedding.entity import Embedding, EmbeddingBatch
+from neurokit.knowledge.embedding.provider import (
     EmbeddingProvider,
     OpenAIEmbeddingProvider,
     CohereEmbeddingProvider,
@@ -9,9 +13,10 @@ from neurokit.knowledge.embedding import (
 )
 
 __all__ = [
-    "Document",
+    # Entities
     "Embedding",
     "EmbeddingBatch",
+    # Providers
     "EmbeddingProvider",
     "OpenAIEmbeddingProvider",
     "CohereEmbeddingProvider",
