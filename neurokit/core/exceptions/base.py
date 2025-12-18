@@ -12,11 +12,13 @@ class NeuroKitError(Exception):
     """
     Base exception class for all NeuroKit errors.
     """
+    default_message = "An error occurred in NeuroKit."
+    default_details = {}
 
-    def __init__(self, message: str, details: Optional[dict[str, Any]] = None) -> None:
-        super().__init__(message)
-        self.message = message
-        self.details = details or {}
+    def __init__(self, message: str = None, details: Optional[dict[str, Any]] = None) -> None:
+        super().__init__(message or self.default_message)
+        self.message = message or self.default_message
+        self.details = details or self.default_details
 
     def __str__(self) -> str:
         return f"{self.message} ({self.details_str})" if self.details else self.message
