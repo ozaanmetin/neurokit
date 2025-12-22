@@ -109,3 +109,5 @@ chroma_data/
 
 ### Ollama ###
 ollama_data/
+
+examples/
