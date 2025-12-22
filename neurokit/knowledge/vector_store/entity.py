@@ -33,12 +33,14 @@ class VectorRecord:
     """A single vector record.
 
     Notes:
+    - `content` is the text content associated with this vector (required).
     - `metadata` is meant for filtering.
     - `payload` is stored and returned as-is; its schema is intentionally flexible.
     """
 
     id: str
     vector: Vector
+    content: str
     metadata: Metadata = field(default_factory=dict)
     payload: Payload = field(default_factory=dict)
 
@@ -49,10 +51,14 @@ class VectorSearchResult:
 
     `score` semantics:
     - Always "higher is better".
+
+    Notes:
+    - `content` is the text content associated with this vector result.
     """
 
     id: str
     score: float
+    content: str
     metadata: Metadata = field(default_factory=dict)
     payload: Payload = field(default_factory=dict)
     vector: list[float] | None = None

@@ -24,25 +24,34 @@ except Exception as exc:  # pragma: no cover
 
 
 _RESERVED_PAYLOAD_KEY = "_nk_payload"
+_RESERVED_CONTENT_KEY = "_nk_content"
 
 
-def _split_meta_and_payload(metadata: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
+def _split_meta_and_payload(metadata: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any], str]:
+    """Split Chroma metadata into clean metadata, payload, and content.
+
+    Returns:
+        tuple: (clean_metadata, payload_dict, content_str)
+    """
     payload_json = metadata.get(_RESERVED_PAYLOAD_KEY)
+    content = metadata.get(_RESERVED_CONTENT_KEY, "")
+
     clean_meta = dict(metadata)
     clean_meta.pop(_RESERVED_PAYLOAD_KEY, None)
+    clean_meta.pop(_RESERVED_CONTENT_KEY, None)
 
     if payload_json is None:
-        return clean_meta, {}
+        return clean_meta, {}, content
 
     if isinstance(payload_json, str):
         try:
             payload = json.loads(payload_json)
             if isinstance(payload, dict):
-                return clean_meta, payload
+                return clean_meta, payload, content
         except json.JSONDecodeError:
             pass
 
-    return clean_meta, {}
+    return clean_meta, {}, content
 
 
 def _compile_filter(expr: Filter) -> dict[str, Any]:
@@ -152,6 +161,7 @@ class ChromaVectorStore(VectorStore):
             embeddings.append(list(record.vector))
 
             metadata = dict(record.metadata or {})
+            metadata[_RESERVED_CONTENT_KEY] = record.content
             try:
                 metadata[_RESERVED_PAYLOAD_KEY] = json.dumps(dict(record.payload or {}))
             except TypeError as exc:
@@ -191,11 +201,12 @@ class ChromaVectorStore(VectorStore):
 
         for idx, record_id in enumerate(resp_ids):
             metadata = resp_metadatas[idx] or {}
-            clean_meta, payload = _split_meta_and_payload(metadata)
+            clean_meta, payload, content = _split_meta_and_payload(metadata)
             out.append(
                 VectorRecord(
                     id=record_id,
                     vector=list(resp_embeddings[idx]) if include_vectors else [],
+                    content=content,
                     metadata=clean_meta,
                     payload=payload if include_payloads else {},
                 )
@@ -240,12 +251,13 @@ class ChromaVectorStore(VectorStore):
             distance = distances[i]
             score = 1.0 - float(distance)
             metadata = metadatas[i] or {}
-            clean_meta, payload = _split_meta_and_payload(metadata)
+            clean_meta, payload, content = _split_meta_and_payload(metadata)
 
             out.append(
                 VectorSearchResult(
                     id=record_id,
                     score=score,
+                    content=content,
                     metadata=clean_meta,
                     payload=payload if include_payloads else {},
                     vector=list(embedding_row[i]) if include_vectors and i < len(embedding_row) else None,

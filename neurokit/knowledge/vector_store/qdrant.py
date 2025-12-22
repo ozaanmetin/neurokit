@@ -25,6 +25,7 @@ except Exception as exc:  # pragma: no cover
 
 
 _RESERVED_PAYLOAD_KEY = "_nk_payload"
+_RESERVED_CONTENT_KEY = "_nk_content"
 
 
 def _compile_filter(expr: Filter) -> Any:
@@ -153,6 +154,7 @@ class QdrantVectorStore(VectorStore):
 
             payload = dict(record.metadata or {})
             payload[_RESERVED_PAYLOAD_KEY] = dict(record.payload or {})
+            payload[_RESERVED_CONTENT_KEY] = record.content
 
             points.append(models.PointStruct(id=record.id, vector=list(record.vector), payload=payload))
 
@@ -188,10 +190,12 @@ class QdrantVectorStore(VectorStore):
         for p in points:
             payload = dict(p.payload or {})
             user_payload = payload.pop(_RESERVED_PAYLOAD_KEY, {}) if include_payloads else {}
+            content = payload.pop(_RESERVED_CONTENT_KEY, "")
             out.append(
                 VectorRecord(
                     id=str(p.id),
                     vector=list(p.vector) if include_vectors and p.vector is not None else [],
+                    content=content,
                     metadata=payload,
                     payload=dict(user_payload) if include_payloads else {},
                 )
@@ -228,10 +232,12 @@ class QdrantVectorStore(VectorStore):
         for h in hits:
             payload = dict(h.payload or {})
             user_payload = payload.pop(_RESERVED_PAYLOAD_KEY, {}) if include_payloads else {}
+            content = payload.pop(_RESERVED_CONTENT_KEY, "")
             out.append(
                 VectorSearchResult(
                     id=str(h.id),
                     score=float(h.score),
+                    content=content,
                     metadata=payload,
                     payload=dict(user_payload) if include_payloads else {},
                     vector=list(h.vector) if include_vectors and h.vector is not None else None,

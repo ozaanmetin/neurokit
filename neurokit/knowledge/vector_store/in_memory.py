@@ -98,6 +98,7 @@ class InMemoryVectorStore(VectorStore):
             state.records[record.id] = VectorRecord(
                 id=record.id,
                 vector=list(record.vector),
+                content=record.content,
                 metadata=dict(record.metadata or {}),
                 payload=dict(record.payload or {}),
             )
@@ -137,6 +138,7 @@ class InMemoryVectorStore(VectorStore):
                 VectorRecord(
                     id=record.id,
                     vector=list(record.vector) if include_vectors else [],
+                    content=record.content,
                     metadata=dict(record.metadata),
                     payload=dict(record.payload) if include_payloads else {},
                 )
@@ -174,6 +176,7 @@ class InMemoryVectorStore(VectorStore):
                 VectorSearchResult(
                     id=record.id,
                     score=score,
+                    content=record.content,
                     metadata=dict(record.metadata),
                     payload=dict(record.payload) if include_payloads else {},
                     vector=list(record.vector) if include_vectors else None,
