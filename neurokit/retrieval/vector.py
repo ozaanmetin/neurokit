@@ -60,7 +60,7 @@ class VectorRetriever(Retriever):
             retrieval_results.append(
                 RetrievalResult(
                 id=r.id,
-                content=r.payload.get("content", ""),
+                content=r.content,  # Use content field directly from VectorSearchResult
                 score=r.score,
                 metadata=r.metadata,
             ))
