@@ -31,6 +31,12 @@ vector-stores = [
     "pymongo>=4.6.0",
 ]
 
+# LLM providers
+llm-providers = [
+    "openai>=1.0.0",
+    "ollama~=0.6.0",
+]
+
 # Development
 dev = [
     "pytest>=7.0.0",
@@ -41,6 +47,7 @@ dev = [
 all = [
     "openai>=1.0.0",
     "cohere>=5.0.0",
+    "ollama~=0.6.0",
     "sentence-transformers>=2.2.0",
     "chromadb>=0.4.0",
     "qdrant-client>=1.7.0",
