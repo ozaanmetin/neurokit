@@ -5,7 +5,7 @@ Embedding generation and management for vector representations.
 """
 
 from neurokit.knowledge.embedding.entity import Embedding, EmbeddingBatch
-from neurokit.knowledge.embedding.provider import (
+from neurokit.knowledge.embedding.providers import (
     EmbeddingProvider,
     OpenAIEmbeddingProvider,
     CohereEmbeddingProvider,
