@@ -10,7 +10,7 @@ from neurokit.llm.entity import (
 )
 
 
-class OpenAIProvider(LLMProvider):
+class OpenAILLMProvider(LLMProvider):
     """
     OpenAI Language Model Provider.
     """
@@ -19,8 +19,8 @@ class OpenAIProvider(LLMProvider):
         self,
         model: str,
         api_key: str,
-        max_tokens: Optional[int] = None,
         temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None,
         **kwargs,
     ):
         super().__init__(model, max_tokens, temperature, **kwargs)
