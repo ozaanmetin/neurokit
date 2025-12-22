@@ -62,6 +62,8 @@ class VectorRetriever(Retriever):
                 id=r.id,
                 content=r.content,  # Use content field directly from VectorSearchResult
                 score=r.score,
+                chunk_id=r.metadata.get("chunk_id") if r.metadata else None,
+                document_id=r.metadata.get("document_id") if r.metadata else None,
                 metadata=r.metadata,
             ))
 
